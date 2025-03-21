@@ -33,9 +33,9 @@ fi
 # パッケージのインストール確認
 if ! sudo -u "$USER" "$UV_PATH" run -- python -c "import whill_ctrl" 2>/dev/null; then
     echo "whill_ctrlパッケージがインストールされていません。"
-    echo "パッケージをインストールします: uv pip install -e ."
+    echo "パッケージをインストールします: uv sync"
     cd "$SCRIPT_DIR"
-    sudo -u "$USER" "$UV_PATH" pip install -e .
+    sudo -u "$USER" "$UV_PATH" sync
 
     # インストール後に再確認
     if ! sudo -u "$USER" "$UV_PATH" run -- python -c "import whill_ctrl" 2>/dev/null; then
