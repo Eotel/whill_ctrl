@@ -1,12 +1,12 @@
 """
-ユーティリティ関数を提供するモジュール
+ロギングユーティリティモジュール
 """
 
 import sys
 
 from loguru import logger
 
-from .config import get_settings
+from ..config import get_settings
 
 settings = get_settings()
 
