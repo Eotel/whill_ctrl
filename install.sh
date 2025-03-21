@@ -97,31 +97,8 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
-# Mosquitto 設定ファイルのコピー
-if [ -f "$SCRIPT_DIR/mosquitto.conf" ]; then
-    echo "Mosquitto設定ファイルを配置します..."
-
-    # Mosquitto ディレクトリの存在確認
-    if [ ! -d "/etc/mosquitto/conf.d" ]; then
-        echo "Mosquittoの設定ディレクトリが存在しません。作成します..."
-        mkdir -p /etc/mosquitto/conf.d
-    fi
-
-    # 設定ファイルをコピー
-    cp "$SCRIPT_DIR/mosquitto.conf" /etc/mosquitto/conf.d/whill-ctrl.conf
-    echo "Mosquitto設定ファイルを /etc/mosquitto/conf.d/whill-ctrl.conf にコピーしました"
-
-    # Mosquittoサービスの再起動（インストールされている場合）
-    if systemctl list-unit-files | grep -q mosquitto; then
-        echo "Mosquittoサービスを再起動します..."
-        systemctl restart mosquitto
-    else
-        echo "Mosquittoサービスが見つかりません。手動でインストールと起動が必要かもしれません。"
-        echo "  例: apt install mosquitto mosquitto-clients"
-    fi
-else
-    echo "mosquitto.confファイルが見つかりません。Mosquitto設定はスキップします。"
-fi
+# Mosquitto設定ファイルのコピーはスキップ（既存の設定ファイルを使用）
+echo "既存のMosquitto設定を使用します。設定ファイルのコピーはスキップします。"
 
 # ログディレクトリの作成
 mkdir -p "$HOME_DIR"/logs
