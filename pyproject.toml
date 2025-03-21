@@ -1,49 +1,51 @@
 [project]
-name = "whill_ctrl"
+name = "whill-ctrl"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-  { name = "eotel", email = "49769982+Eotel@users.noreply.github.com" },
+    { name = "eotel", email = "49769982+Eotel@users.noreply.github.com" },
 ]
 readme = "README.md"
 
 requires-python = ">=3.13"
 dependencies = ["asyncclick>=8.1.8", "python-osc>=1.9.3", "whill>=1.4.0"]
 
+[project.scripts]
+whill-ctrl = "whill_ctrl.__main__:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[project.scripts]
-whill_ctrl = "whill_ctrl.__main__:main"
+[dependency-groups]
+dev = ["ruff>=0.11.1"]
 
 [tool.ruff]
 exclude = [
-  ".git",
-  "__pycache__",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".ruff",
-  ".vscode",
-  "build",
-  "dist",
-  "env",
-  ".env",
-  "node_modules",
-  "venv",
-  ".venv",
+    ".git",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff",
+    ".vscode",
+    "build",
+    "dist",
+    "env",
+    ".env",
+    "node_modules",
+    "venv",
+    ".venv",
 ]
 
 line-length = 120
 indent-width = 4
-
 target-version = "py312"
 
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "B", "I"]
-ignore = ["B008"]
-exclude = ["migrations"]
 
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501", "B008", "C901", "W191", "B904"]
+exclude = ["migrations"]
 fixable = ["ALL"]
 unfixable = ["B"]
 
@@ -54,26 +56,28 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-#"**/migrations/*.py" = ["F401"]
-"__init__.py" = ["E402", "D104", "F403"]
-"**/{tests,docs,tools}/*" = ["E402"]
+"__init__.py" = ["F401"]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
-
 docstring-code-line-length = "dynamic"
+
 
 [tool.ruff.lint.isort]
 case-sensitive = true
 split-on-trailing-comma = true
 combine-as-imports = true
 section-order = [
-  "future",
-  "standard-library",
-  "third-party",
-  "first-party",
-  "local-folder",
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
 ]
+known-third-party = [""]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true

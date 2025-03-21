@@ -121,9 +121,7 @@ class WhillOSCController:
             # 念のため範囲を -100～100 にクリッピングする
             side = max(min(side, 100), -100)
             front = max(min(front, 100), -100)
-            print(
-                f"[{address}] Received x: {x_raw}, y: {y_raw} => side: {side}, front: {front}"
-            )
+            print(f"[{address}] Received x: {x_raw}, y: {y_raw} => side: {side}, front: {front}")
             self.whill.send_joystick(front=front, side=side)
         except Exception as e:
             print(f"Error in OSC joystick callback: {e}")
@@ -195,9 +193,7 @@ async def main(serial_port, osc_ip, osc_port, use_mock):
     controller = WhillOSCController(whill_instance)
 
     # Set up the asynchronous OSC UDP server.
-    server = AsyncIOOSCUDPServer(
-        (osc_ip, osc_port), controller.dispatcher, asyncio.get_running_loop()
-    )
+    server = AsyncIOOSCUDPServer((osc_ip, osc_port), controller.dispatcher, asyncio.get_running_loop())
     transport, protocol = await server.create_serve_endpoint()
     print(f"OSC Server started on {osc_ip}:{osc_port}")
 
