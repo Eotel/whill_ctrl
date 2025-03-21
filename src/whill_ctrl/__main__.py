@@ -8,10 +8,17 @@ The joystick callback interprets the first parameter as 'side' and the second as
 """
 
 import asyncio
+from datetime import datetime
 
 import asyncclick as click
+from loguru import logger
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
+
+from .config import get_settings
+from .utils import setup_logger
+
+conf = get_settings()
 
 
 # Define an abstract interface for WHILL operations.
@@ -47,44 +54,50 @@ class RealWHILL(AbstractWHILL):
     def __init__(self, port: str) -> None:
         if ComWHILL is None:
             raise ImportError("whill Python SDK is not installed.")
-        self.device = ComWHILL(port=port)
-        print(f"Connected to WHILL device on port {port}")
+        self._device = ComWHILL(port=port)
+        logger.info(f"Connected to WHILL device on port {port}")
 
     def send_joystick(self, *, front: int, side: int) -> None:
-        print(f"Sending joystick command: front={front}, side={side}")
-        self.device.send_joystick(front=front, side=side)
+        logger.debug(f"Sending joystick command: front={front}, side={side}")
+        self._device.send_joystick(front=front, side=side)
 
     def send_power_on(self) -> None:
-        print("Sending power on command")
-        self.device.send_power_on()
+        logger.debug("Sending power on command")
+        self._device.send_power_on()
 
     def send_power_off(self) -> None:
-        print("Sending power off command")
-        self.device.send_power_off()
+        logger.debug("Sending power off command")
+        self._device.send_power_off()
 
     def send_emergency_stop(self) -> None:
-        print("Sending emergency stop command")
+        logger.debug("Sending emergency stop command")
         # For example, an emergency stop might be implemented by setting both speeds to 0.
-        self.device.send_joystick(front=0, side=0)
+        self._device.send_joystick(front=0, side=0)
+
+    def disconnect(self) -> None:
+        try:
+            self._device.com.close()
+        except Exception as e:
+            logger.error(f"Failed to close serial port: {e}")
 
 
 # Mock implementation for testing without real hardware.
 class MockWHILL(AbstractWHILL):
     def __init__(self, port: str) -> None:
         self.port = port
-        print(f"Using mock WHILL on port {port}")
+        logger.debug(f"Using mock WHILL on port {port}")
 
     def send_joystick(self, *, front: int, side: int) -> None:
-        print(f"[Mock] Joystick command received: front={front}, side={side}")
+        logger.debug(f"[Mock] Joystick command received: front={front}, side={side}")
 
     def send_power_on(self) -> None:
-        print("[Mock] Power on command received")
+        logger.debug("[Mock] Power on command received")
 
     def send_power_off(self) -> None:
-        print("[Mock] Power off command received")
+        logger.debug("[Mock] Power off command received")
 
     def send_emergency_stop(self) -> None:
-        print("[Mock] Emergency stop command received (set velocity to 0)")
+        logger.debug("[Mock] Emergency stop command received (set velocity to 0)")
 
 
 # Controller that sets up OSC message mappings.
@@ -167,7 +180,13 @@ class WhillOSCController:
     default=False,
     help="Use the mock WHILL implementation instead of the actual device",
 )
-async def main(serial_port, osc_ip, osc_port, use_mock):
+@click.option(
+    "--debug",
+    is_flag=True,
+    default=False,
+    help="Enable debug mode with additional logging",
+)
+async def main(serial_port, osc_ip, osc_port, use_mock, debug):
     """
     WHILL OSC Controller
 
@@ -179,6 +198,16 @@ async def main(serial_port, osc_ip, osc_port, use_mock):
 
     Serial port and OSC network settings are provided as command-line options.
     """
+
+    # ロガーの設定
+    setup_logger(debug_mode=debug)
+
+    logger.info("=== WhiLL Controller 起動 ===")
+    logger.info(f"開始時間: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # 設定ディレクトリの作成
+    conf.ensure_config_dirs()
+
     # Initialize the WHILL instance.
     if use_mock:
         whill_instance = MockWHILL(serial_port)
@@ -186,7 +215,7 @@ async def main(serial_port, osc_ip, osc_port, use_mock):
         try:
             whill_instance = RealWHILL(serial_port)
         except Exception as e:
-            print(f"Failed to initialize WHILL device: {e}")
+            logger.error(f"Failed to initialize WHILL device: {e}")
             return
 
     # Create the OSC controller.
@@ -195,7 +224,7 @@ async def main(serial_port, osc_ip, osc_port, use_mock):
     # Set up the asynchronous OSC UDP server.
     server = AsyncIOOSCUDPServer((osc_ip, osc_port), controller.dispatcher, asyncio.get_running_loop())
     transport, protocol = await server.create_serve_endpoint()
-    print(f"OSC Server started on {osc_ip}:{osc_port}")
+    logger.info(f"OSC Server started on {osc_ip}:{osc_port}")
 
     try:
         # Keep the server running indefinitely.

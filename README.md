@@ -11,7 +11,7 @@ $ uv sync
 ### Run
 
 ```bash
-uv run whill_ctrl --help
+uv run -- whill-ctrl --help
 ```
 
 ### Lint / Format
